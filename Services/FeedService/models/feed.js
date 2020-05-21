@@ -1,6 +1,5 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
-const mongoosePaginate = require('mongoose-paginate-v2');
 const Feed = new Schema(
     {
         userId:{ type : String, required : true },
@@ -13,5 +12,4 @@ const Feed = new Schema(
         versionKey: false
     }
 )
-Feed.plugin(mongoosePaginate)
 exports.Feed = mongoose.model('Feed', Feed)

@@ -2,7 +2,6 @@ const express = require('express')
 const morgan = require('morgan')
 const mongoose = require('mongoose')
 const app = express()
-const paginate = require('express-paginate');
 
 
 //DB
@@ -16,7 +15,6 @@ mongoose.connect(`mongodb://${username}:${password}@feed-db:27017/feeds`, {useNe
 app.use(express.json())
 app.use(require('./Controllers'))
 app.use(express.urlencoded({ extended: true }))
-app.use(paginate.middleware(10, 50));
 
 app.listen(process.env.PORT || 5000, () => {
     console.log('connect' + process.env.PORT)
