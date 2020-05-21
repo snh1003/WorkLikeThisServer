@@ -6,6 +6,8 @@ services:
       dockerfile: Dockerfile
     image: userservice:1.0
     container_name: userservice_V1
+    ports:
+    - 5001:5001
     volumes:
     - ./Services/UserService:/app
     environment:
@@ -25,6 +27,8 @@ services:
       dockerfile: Dockerfile
     image: feedservice:1.0
     container_name: feedservice_V1
+    ports:
+      - 5000:5000
     volumes:
     - ./Services/FeedService:/app
     environment:
