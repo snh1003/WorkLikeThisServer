@@ -5,11 +5,18 @@
     "start": "nodemon app.js"
   },
   "dependencies": {
+    "express": "^4.16.4",
+    "express-paginate": "^1.0.0",
     "mongoose": "^5.9.15",
     "morgan": "^1.10.0",
-    "express": "^4.16.4"
+    "eslint": "^7.0.0"
   },
   "devDependencies": {
+
+    "eslint-config-airbnb": "^18.1.0",
+    "eslint-plugin-import": "^2.20.2",
+    "eslint-plugin-jsx-a11y": "^6.2.3",
+    "eslint-plugin-react": "^7.20.0",
     "nodemon": "^2.0.4"
   }
 }
