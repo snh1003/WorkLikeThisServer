@@ -12,7 +12,7 @@ const router = express.Router();
 router.post('/', async (req, res) => {
   try {
     const user = await userModel.findOne({username: req.body.username});
-    client.hgetall(req.headers.authorization.slice(7), async (err, result) => {
+    client.hgetall(req.headers.authorization, async (err, result) => {
       if (!err) {
         const isFollowing = await followInfomodel.findOne({
           userId: result._id,
@@ -52,7 +52,7 @@ router.post('/', async (req, res) => {
 router.delete('/', async (req, res) => {
   try {
     const user = await userModel.findOne({username: req.body.username})
-    client.hgetall(req.headers.authorization.slice(7), (err, result) => {
+    client.hgetall(req.headers.authorization, (err, result) => {
       if (!err) {
         followInfomodel.findOneAndRemove({ 
           userId: result._id,
