@@ -10,21 +10,26 @@ jwtSecret = process.env.JWT_PASSWORD;
 const router = express.Router();
 
 router.post('/signin', async (req, res) => {
-  userModel.findOne({ email: req.body.email }, async (err, user) => {
+  userModel.findOne({ email: req.body.email }, (err, user) => {
     if (err) throw err;
-    user.comparePassword(req.body.password, async (error, isEqual) => {
+    if (user.interest.length < 1) return res.status(205).send('Fill Interest');
+
+    user.comparePassword(req.body.password, (error, isEqual) => {
       if (error) throw error;
+
       if (isEqual) {
         const token = jwt.sign({ id: user._id }, jwtSecret, {
           expiresIn: 86400,
           subject: 'userID',
         });
+
         client.hmset(
           token,
           { "_id": `${user._id}`, "username": `${user.username}`, "userImage": `${user.userImage}` },
           redis.print
         );
         client.expire(token, 86400);
+
         res.status(200).json({ token });
       } else {
         res.status(401).send('Invalid User');
@@ -40,6 +45,7 @@ router.post('/signup', (req, res) => {
     password: req.body.password,
     interest: req.body.interest,
   });
+
   newUser
     .save()
     .then(() => {

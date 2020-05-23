@@ -30,6 +30,7 @@ const userSchema = new mongoose.Schema(
     },
     userImage: {
       type: String,
+      default: '',
     },
     interest: [String],
     createdAt: {

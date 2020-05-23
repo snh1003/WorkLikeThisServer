@@ -12,34 +12,38 @@ const router = express.Router();
 router.post('/', async (req, res) => {
   try {
     const user = await userModel.findOne({username: req.body.username});
-    client.hgetall(req.headers.authorization, async (err, result) => {
+    client.hgetall(req.headers.authorization.slice(7), async (err, result) => {
       if (!err) {
-        const isFollowing = await followInfomodel.findOne({
-          userId: result._id,
-          follow: user._id
-        });
-
-        if (!isFollowing && (result._id !== `${user._id}`)) {
-          const following = new followInfomodel({
+        try {
+          const isFollowing = await followInfomodel.findOne({
             userId: result._id,
             follow: user._id
           });
-          
-          following
-            .save()
-            .then(() => {
-              res.status(204).end();
-            })
-            .catch(err => {
-              res.status(409).send('Failed');
-            })
-        } else {
-          res.status(403).send('Forbidden');
+  
+          if (!isFollowing && (result._id !== `${user._id}`)) {
+            const following = new followInfomodel({
+              userId: result._id,
+              follow: user._id
+            });
+            
+            following
+              .save()
+              .then(() => {
+                res.status(204).end();
+              })
+              .catch(err => {
+                res.status(409).send('Failed');
+              })
+          } else {
+            res.status(403).send('Forbidden');
+          }
+        } catch (err) {
+          res.status(401).send('Unauthorized');
         }
       } else {
         res.status(401).send('Unauthorized');
       }
-    })  
+    });
   } catch (err) {
     res.status(400).send('Bad Request');
   }
@@ -52,22 +56,27 @@ router.post('/', async (req, res) => {
 router.delete('/', async (req, res) => {
   try {
     const user = await userModel.findOne({username: req.body.username})
-    client.hgetall(req.headers.authorization, (err, result) => {
+    client.hgetall(req.headers.authorization.slice(7), (err, result) => {
       if (!err) {
-        followInfomodel.findOneAndRemove({ 
-          userId: result._id,
-          follow: user._id
-        })
-        .then(() => {
-          res.status(204).end();
-        })
-        .catch(err => {
-          res.status(404).send('Not Found');
-        });
+        try {
+          followInfomodel.findOneAndRemove({ 
+            userId: result._id,
+            follow: user._id
+          })
+          .then(() => {
+            res.status(204).end();
+          })
+          .catch(err => {
+            res.status(404).send('Not Found');
+          });
+      
+        } catch(err) {
+          res.status(401).send('Unauthorized');
+        }
       } else {
         res.status(401).send('Unauthorized');
       }
-    })
+    });
   } catch (err) {
     res.status(400).send('Bad Request');
   }
