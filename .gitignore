@@ -5,6 +5,10 @@
 /.pnp
 .pnp.js
 
+#dev 안영재 추가
+.eslintrc.json
+.prettierrc.json
+
 # testing
 /coverage
 
@@ -22,3 +26,15 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 /.idea/
+
+### VisualStudioCode ###
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+### VisualStudioCode Patch ###
+# Ignore all local history of files
+.history
+

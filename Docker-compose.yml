@@ -1,13 +1,18 @@
 version: '3'
 services:
+  redis:
+    container_name: redis
+    image: redis
+    command: ["redis-server", "--appendonly", "yes"]
+    hostname: redis
   user:
     build:
       context: ./Services/UserService
       dockerfile: Dockerfile
     image: userservice:1.0
     container_name: userservice_V1
-    ports:
-    - 5001:5001
+    ports: 
+      - 5001:5001
     volumes:
     - ./Services/UserService:/app
     environment:
@@ -15,7 +20,7 @@ services:
       MONGODB_ADMIN_PWD: root
     depends_on:
       - user-db
-    command: [sh, -c, npm install && npm start]
+    command: [sh, -c, npm install && npm uninstall bcrypt && npm install bcrypt && npm start]
   user-db:
     image: mongo
     environment:
@@ -45,3 +50,5 @@ services:
 volumes:
   user-db:
   feed-db:
+
+
