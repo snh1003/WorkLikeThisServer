@@ -3,9 +3,9 @@ const jwt = require('jsonwebtoken');
 const userModel = require('../../models/users.js');
 require('dotenv').config();
 const redis = require('redis');
-const client = redis.createClient(6379, 'redis');
+const redisServer = redis.createClient(6379, 'redis');
 
-jwtSecret = process.env.JWT_PASSWORD;
+const jwtSecret = process.env.JWT_PASSWORD;
 
 const router = express.Router();
 
@@ -23,12 +23,12 @@ router.post('/signin', async (req, res) => {
           subject: 'userID',
         });
 
-        client.hmset(
+        redisServer.hmset(
           token,
           { "_id": `${user._id}`, "username": `${user.username}`, "userImage": `${user.userImage}` },
           redis.print
         );
-        client.expire(token, 86400);
+        redisServer.expire(token, 86400);
 
         res.status(200).json({ token });
       } else {
@@ -57,7 +57,7 @@ router.post('/signup', (req, res) => {
 });
 
 router.post('/signout', (req, res) => {
-  client.del(req.headers.authorization, (err, result) => {
+  redisServer.del(req.headers.authorization, (err, result) => {
     if (!err) {
       res.status(204).end();
     } else {

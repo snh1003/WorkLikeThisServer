@@ -1,6 +1,6 @@
 const express = require('express');
 const redis = require('redis');
-const client = redis.createClient(6379, 'redis');
+const redisServer = redis.createClient(6379, 'redis');
 const userModel = require('../../models/users.js');
 const followInfoModel = require('../../models/follwerInfo.js');
 
@@ -20,7 +20,7 @@ const makeSearchArr = (JSONArr, value) => {
 // 자신의 프로필 데이터
 router.get('/', async (req, res) => {
   try {
-    client.hgetall(req.headers.authorization, async (err, user) => {
+    redisServer.hgetall(req.headers.authorization, async (err, user) => {
       if (!err) {
         try {
           const userInfo = await userModel.findById(user._id);
@@ -63,7 +63,7 @@ router.get('/', async (req, res) => {
 router.patch('/', async (req, res) => {
   try {
     const body = req.body;
-    const user = client.hgetall(req.headers.authorization);
+    const user = redisServer.hgetall(req.headers.authorization);
     const result = await userModel.findOneAndUpdate(
       { id: user._id },
       { $set: body },
@@ -92,7 +92,7 @@ router.patch('/', async (req, res) => {
 router.get('/follower', async (req, res) => {
   console.log(req.headers.authorization);
   try {
-    client.hgetall(req.headers.authorization.slice(7), async (err, user) => {
+    redisServer.hgetall(req.headers.authorization.slice(7), async (err, user) => {
       if (!err) {
         try {
           const follower = await followInfoModel.find()
@@ -131,7 +131,7 @@ router.get('/follower', async (req, res) => {
 // 내가 팔로우 하고 있는 유저 정보
 router.get('/following', async (req, res) => {
   try {
-    client.hgetall(req.headers.authorization, async (err, user) => {
+    redisServer.hgetall(req.headers.authorization, async (err, user) => {
       if (!err) {
         try {
           const following = await followInfoModel.find()
