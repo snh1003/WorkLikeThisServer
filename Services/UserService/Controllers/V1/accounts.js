@@ -57,7 +57,7 @@ router.post('/signup', (req, res) => {
 });
 
 router.post('/signout', (req, res) => {
-  client.del(req.headers.authorization.slice(7), (err, result) => {
+  client.del(req.headers.authorization, (err, result) => {
     if (!err) {
       res.status(204).end();
     } else {
