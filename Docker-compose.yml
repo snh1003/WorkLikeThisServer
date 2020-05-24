@@ -32,7 +32,7 @@ services:
       dockerfile: Dockerfile
     image: feedservice:1.0
     container_name: feedservice_V1
-    ports: 
+    ports:
       - 5000:5000
     volumes:
     - ./Services/FeedService:/app
