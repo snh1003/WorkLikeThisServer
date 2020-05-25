@@ -42,7 +42,6 @@ const tokenAndRedis = (user) => {
     );
     redisServer.expire(token, 86400);
   }
-  
 
   return token;
 }
@@ -58,7 +57,7 @@ router.post('/signin', (req, res) => {
     const googleEmail = payload['email'];
     const googleImage = payload['picture'];
     const user = await userModel.findOne({ email: googleEmail });
-    
+
     if (user === null) {
       const googleUser = new userModel({
         email: googleEmail,
@@ -85,7 +84,7 @@ router.post('/signin', (req, res) => {
       });
     }
   }
-  verify().then(() => {}).catch(console.error);
+  verify().then(() => { }).catch(console.error);
 });
 
 module.exports = router;
