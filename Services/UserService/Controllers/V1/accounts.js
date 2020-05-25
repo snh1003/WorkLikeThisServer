@@ -12,53 +12,57 @@ const jwtSecret = process.env.JWT_PASSWORD;
 const router = express.Router();
 
 router.post('/signin', async (req, res) => {
-  userModel.findOne({ email: req.body.email }, (err, user) => {
-    if (err) throw err;
-    
+  try {
+    const user = await userModel.findOne({ email: req.body.email });
+    console.log(user);
+    if (user !== null) {
+      user.comparePassword(req.body.password, (err, isEqual) => {
+        if (err) return res.status(401).send('Unauthorized');
 
-    user.comparePassword(req.body.password, (error, isEqual) => {
-      if (error) throw error;
-      
-      
-      if (isEqual) {
-        const token = jwt.sign({ id: user._id }, jwtSecret, {
-          expiresIn: 86400,
-          subject: 'userID',
-        });
-
-        redisServer.hmset(
-          token,
-          { 
-            "_id": `${user._id}`,
-            "username": `${user.username}`,
-            "userImage": `${user.userImage}`,
-            "job": `${user.job}`,
-            "hashtag": `${user.hashtag}`,
-          },
-          redis.print
-        );
-        redisServer.expire(token, 86400);
-
-        if (user.hashtag.length < 1) {
-          res.status(205).json({
-            _id: user._id,
-            username: user.username,
-            userImage: user.userImage,
-            token: token
-          })
-        } else {
-          res.status(200).json({
-            _id: user._id,
-            username: user.username,
-            userImage: user.userImage,
-            token: token
+        if (isEqual) {
+          const token = jwt.sign({ id: user._id }, jwtSecret, {
+            expiresIn: 86400,
+            subject: 'userID',
           });
+
+          redisServer.hmset(
+            token,
+            {
+              '_id': `${user._id}`,
+              'username': `${user.username}`,
+              'userImage': `${user.userImage}`,
+              'job': `${user.job}`,
+              'hashtag': `${user.hashtag}`,
+            },
+            redis.print
+          );
+          redisServer.expire(token, 86400);
+
+          if (user.hashtag.length < 1) {
+            res.status(205).json({
+              _id: user._id,
+              username: user.username,
+              userImage: user.userImage,
+              token: token
+            })
+          } else {
+            res.status(200).json({
+              _id: user._id,
+              username: user.username,
+              userImage: user.userImage,
+              token: token
+            });
+          }
+        } else {
+          res.status(401).send('Unauthorized');
         }
-      } else {
-        res.status(401).send('Invalid User');
-      }
-    });
-  });
+      })
+    } else {
+      res.status(404).send('Not Found');
+    }
+  } catch {
+    res.status(400).send('Bad Request');
+  }
 });
 
 router.post('/signup', (req, res) => {
@@ -78,6 +82,7 @@ router.post('/signup', (req, res) => {
     });
 });
 
+// 회원가입 시 해쉬태그 추가
 router.patch('/signup', async (req, res) => {
   try {
     const token = req.headers.authorization.slice(7);
@@ -87,27 +92,27 @@ router.patch('/signup', async (req, res) => {
       { id: user._id },
       { $set: body },
       {
-        new:true,
+        new: true,
         returnOriginal: false,
       },
     );
-    
+
     if (result) {
       const remainTime = await ttl(token);
 
       redisServer.hmset(
         token,
-        { 
-          "_id": `${result._id}`,
-          "username": `${result.username}`,
-          "userImage": `${result.userImage}`,
-          "job": `${result.job}`,
-          "hashtag": `${result.hashtag}`,
+        {
+          '_id': `${user._id}`,
+          'username': `${user.username}`,
+          'userImage': `${user.userImage}`,
+          'job': `${user.job}`,
+          'hashtag': `${user.hashtag}`,
         },
         redis.print
       );
       redisServer.expire(token, remainTime);
-      
+
       res.status(200).json({
         _id: result._id,
         username: result.username,
@@ -121,11 +126,12 @@ router.patch('/signup', async (req, res) => {
   }
 });
 
+// 로그아웃
 router.post('/signout', async (req, res) => {
   try {
     const token = req.headers.authorization.slice(7);
     const delToken = await redisServer.del(token);
-    
+
     if (delToken) {
       res.status(204).end();
     } else {
