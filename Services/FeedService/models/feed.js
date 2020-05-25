@@ -9,11 +9,12 @@ const Feed = new Schema(
     job: { type: String },
     like: { type: Array },
     comment: [new mongoose.Schema({ commentId: String, text: String })],
-    hashTag: { type: Array },
+    hashtag: { type: Array },
   },
   {
     timestamps: true,
     versionKey: false,
   },
 );
+
 exports.Feed = mongoose.model('Feed', Feed);

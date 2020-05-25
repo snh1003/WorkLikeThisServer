@@ -16,7 +16,7 @@ mongoose.connect(`mongodb://${username}:${password}@feed-db:27017/feeds`, {
 });
 
 // Server
-app.use(cors());
+// app.use(cors());
 app.use(express.json());
 app.use(require('./Controllers'));
 

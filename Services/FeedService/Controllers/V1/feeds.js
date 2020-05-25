@@ -17,7 +17,7 @@ router.get('/timeline', async (req, res) => {
         res.status(401).send('Unauthorized');
       } else {
         const feeds = await Feed.find()
-          .where('userId')
+          .where('hashtag')
           .in([result.hashTag])
           .sort('-createAt')
           .skip(skip)
@@ -41,15 +41,15 @@ router.post('/', async (req, res) => {
       username, job, content, image,
     } = req.body;
     // const { username, job } = result;
-    const hashTag = await findTag(content);
-    console.log(hashTag);
+    const hashtag = await findTag(content);
+    console.log(hashtag);
     const storage = new Feed({
       username,
       content,
       image,
       job,
       like: [],
-      hashTag,
+      hashtag,
     });
     const savedResult = await storage.save();
     res.status(200).json(savedResult);
@@ -172,8 +172,11 @@ const findTag = (content) => {
   const result = [];
   for (let i = 0; i < content.length; i++) {
     const contentElement = content[i];
+    const hashStorage = new Hash();
     if (contentElement === ' ' && storage.length > 0) {
       result.push(storage);
+      hashStorage.hashtag = storage;
+      hashStorage.save();
       storage = '';
       tagOn = false;
     }
