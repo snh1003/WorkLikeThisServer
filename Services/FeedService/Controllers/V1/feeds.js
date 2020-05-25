@@ -1,33 +1,60 @@
 const express = require('express');
-const model = require('../../models/feed.js');
+const redis = require('redis');
+const feedsModel = require('../../models/feed.js');
+const hashModel = require('../../models/hashtag');
 
-const { Feed } = model;
+const client = redis.createClient(6379, 'redis');
+const { Feed } = feedsModel;
+const { Hash } = hashModel;
 const router = express.Router();
-
 // 타임라인 + 페이징처리
-router.post('/timeline', async (req, res) => {
-  const { userId, interest } = req.body;
-  const { page = 1, limit = 10 } = req.query;
-  const skip = (page - 1) * limit;
-  const feeds = await Feed.find()
-    .where('userId')
-    .in([userId, interest])
-    .sort('-createAt')
-    .skip(skip)
-    .limit(parseInt(limit));
-  res.status(200).json(feeds);
+router.get('/timeline', async (req, res) => {
+  try {
+    client.hgetall(req.headers.authorization, async (err, result) => {
+      const { page = 1, limit = 10 } = req.query;
+      const skip = (page - 1) * limit;
+      if (err) {
+        res.status(401).send('Unauthorized');
+      } else {
+        const feeds = await Feed.find()
+          .where('userId')
+          .in([result.hashTag])
+          .sort('-createAt')
+          .skip(skip)
+          .limit(parseInt(limit));
+        res.status(200).json(feeds);
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ error: 'BadRequest' });
+  }
 });
 // 글 작성
 router.post('/', async (req, res) => {
   try {
-    const { userId, content } = req.body;
+  //   client.hgetall(req.headers.authorization, async (err, result) => {
+  //     if (err) {
+  //       res.status(401).send('Unauthorized');
+  //     } else {
+    const {
+      username, job, content, image,
+    } = req.body;
+    // const { username, job } = result;
+    const hashTag = await findTag(content);
+    console.log(hashTag);
     const storage = new Feed({
-      userId,
+      username,
       content,
+      image,
+      job,
       like: [],
+      hashTag,
     });
     const savedResult = await storage.save();
     res.status(200).json(savedResult);
+    //   }
+    // });
   } catch (err) {
     console.error(err);
     res.status(400).json({ error: 'BadRequest' });
@@ -87,11 +114,11 @@ router.patch('/:id', async (req, res) => {
 // 라이크 추가
 router.post('/:id/like', async (req, res) => {
   try {
-    const { username } = req.body;
+    const { userId } = req.body;
     const result = await Feed.findById(req.params.id);
 
     if (result) {
-      result.like.push(username);
+      result.like.push(userId);
       result.save();
       res.status(200).json(result.like);
     } else {
@@ -138,4 +165,21 @@ router.post('/:id/unlike', async (req, res) => {
 // }
 // });
 
+
+const findTag = (content) => {
+  let tagOn = false;
+  let storage = '';
+  const result = [];
+  for (let i = 0; i < content.length; i++) {
+    const contentElement = content[i];
+    if (contentElement === ' ' && storage.length > 0) {
+      result.push(storage);
+      storage = '';
+      tagOn = false;
+    }
+    if (tagOn) storage += contentElement;
+    if (contentElement === '#') tagOn = true;
+  }
+  return result;
+};
 module.exports = router;

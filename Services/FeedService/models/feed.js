@@ -3,10 +3,13 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 const Feed = new Schema(
   {
-    userId: { type: String, required: true },
+    username: { type: String, required: true },
     content: { type: String, required: true, maxlength: 150 },
     image: { type: String },
+    job: { type: String },
     like: { type: Array },
+    comment: [new mongoose.Schema({ commentId: String, text: String })],
+    hashTag: { type: Array },
   },
   {
     timestamps: true,
