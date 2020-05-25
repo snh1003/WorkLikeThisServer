@@ -8,6 +8,7 @@ const ttl = promisify(redisServer.ttl).bind(redisServer);
 
 const router = express.Router();
 
+
 // Array 내 Object에서 필요한 key value 값을 Array에 담아주는 함수
 const makeSearchArr = (JSONArr, value) => {
   const len = JSONArr.length;
@@ -62,7 +63,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// 유저 정보 변경 시 
+// 유저 정보 변경, 레디스 업데이트
 router.patch('/', async (req, res) => {
   try {
     const body = req.body;
@@ -218,6 +219,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// 상대방 프로필 팔로워 정보
 router.get('/:id/follower', async (req, res) => {
   try {
     const follower = await followInfoModel.find()
@@ -246,6 +248,7 @@ router.get('/:id/follower', async (req, res) => {
   }
 });
 
+// 상대방 프로필 팔로잉 정보
 router.get('/:id/following', async (req, res) => {
   try {
     const following = await followInfoModel.find()

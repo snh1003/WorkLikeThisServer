@@ -47,7 +47,7 @@ const tokenAndRedis = (user) => {
   return token;
 }
 
-// 구글 로그인 (db에 email 있으면 로그인 없으면 생성 후 205코드 반환)
+// 구글 로그인 (db에 email 정보 있으면 로그인 없으면 생성 후 205코드 반환)
 router.post('/signin', (req, res) => {
   console.log(req.body.id_token);
   async function verify() {
