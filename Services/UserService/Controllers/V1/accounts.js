@@ -5,12 +5,28 @@ const followInfoModel = require('../../models/follwerInfo.js');
 require('dotenv').config();
 const redis = require('redis');
 const redisServer = redis.createClient(6379, 'redis');
+const nodemailer = require('nodemailer');
 const { promisify } = require("util");
 const ttl = promisify(redisServer.ttl).bind(redisServer);
 
 const jwtSecret = process.env.JWT_PASSWORD;
 
+// 이메일 발송 부분
+const smptServer = 'smtp.naver.com';
+const naverId = 'youngahn11';
+const naverPassword = 'jason1';
+
 const router = express.Router();
+
+const makePassword = () => {
+  let password = "";
+  let text = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+  for (let i = 0; i < 20; i++)
+    password += text.charAt(Math.floor(Math.random() * text.length));
+
+  return password;
+}
 
 // 로그인 함수 패스워드 확인 후 레디스 key value 저장 및 프론트에 json, token response
 router.post('/signin', async (req, res) => {
@@ -168,6 +184,43 @@ router.delete('/secession', async (req, res) => {
     });
   } catch {
     res.status(400).send('Bad Request');
+  }
+});
+
+
+
+router.post('/forgot', async (req, res) => {
+  const email = req.body.email;
+  const user = await userModel.findOne({ email: email });
+
+  if (user !== null) {
+    let newPassword = makePassword();
+
+    const mailOptions = {
+      from: 'youngahn11@naver.com',
+      to: user.email,
+      subject: 'WorkLikeThis에서 임시 비밀번호를 발급해드렸습니다.',
+      text: `임시 비밀번호를 발급해드렸습니다.\n ${newPassword} \n 로그인 후 비밀번호를 교체해주세요.`
+    };
+
+    const smtpTransport = nodemailer.createTransport({
+      host: smptServer,
+      secure: true,
+      auth: {
+        user: naverId,
+        pass: naverPassword,
+      },
+    });
+
+    smtpTransport.sendMail(mailOptions, function (err, info) {
+      if (err) {
+        return res.status(403).send('Forbidden');
+      }
+      smtpTransport.close();
+      return res.status(200).send('Finished send email');
+    });
+  } else {
+    res.status(404).send('Not Found');
   }
 });
 
