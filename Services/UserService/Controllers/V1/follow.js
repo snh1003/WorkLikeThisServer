@@ -1,6 +1,6 @@
 const express = require('express');
 const redis = require('redis');
-const client = redis.createClient(6379, 'redis');
+const redisServer = redis.createClient(6379, 'redis');
 const userModel = require('../../models/users.js');
 const followInfomodel = require('../../models/follwerInfo.js');
 
@@ -12,7 +12,7 @@ const router = express.Router();
 router.post('/', async (req, res) => {
   try {
     const user = await userModel.findOne({username: req.body.username});
-    client.hgetall(req.headers.authorization, async (err, result) => {
+    redisServer.hgetall(req.headers.authorization.slice(7), async (err, result) => {
       if (!err) {
         try {
           const isFollowing = await followInfomodel.findOne({
@@ -56,7 +56,7 @@ router.post('/', async (req, res) => {
 router.delete('/', async (req, res) => {
   try {
     const user = await userModel.findOne({username: req.body.username})
-    client.hgetall(req.headers.authorization, (err, result) => {
+    redisServer.hgetall(req.headers.authorization.slice(7), (err, result) => {
       if (!err) {
         try {
           followInfomodel.findOneAndRemove({ 

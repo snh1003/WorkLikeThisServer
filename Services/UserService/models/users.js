@@ -22,17 +22,23 @@ const userSchema = new mongoose.Schema(
     username: {
       type: String,
       unique: true,
-      required: true,
     },
     password: {
       type: String,
-      required: true,
     },
     userImage: {
       type: String,
       default: '',
     },
-    interest: [String],
+    job: {
+      type: String,
+    },
+    hashtag: [String],
+    from: {
+      type: String,
+      require: true,
+      default: 'local' 
+    },
     createdAt: {
       type: String,
       default: Date.now(),
@@ -50,18 +56,22 @@ const userSchema = new mongoose.Schema(
 // 패스워드 유효성 검사(저장 전)
 userSchema.pre('save', function (next) {
   const user = this;
+  console.log(user.from);
+  if (user.from === 'local') {
+    if (!user.isModified('password')) return next();
+    if (user.password.trim().length < 8) return next();
 
-  if (!user.isModified('password')) return next();
-  if (user.password.trim().length < 8) return next();
-
-  bcrypt.genSalt(10, function (err, salt) {
-    if (err) return next(err);
-    bcrypt.hash(user.password.trim(), salt, function (e, hash) {
-      if (e) return next(e);
-      user.password = hash;
-      next();
+    bcrypt.genSalt(10, function (err, salt) {
+      if (err) return next(err);
+      bcrypt.hash(user.password.trim(), salt, function (e, hash) {
+        if (e) return next(e);
+        user.password = hash;
+        next();
+      });
     });
-  });
+  } else {
+    next();
+  }
 });
 
 // 해싱된 패스워드 비교 커스텀 함수
