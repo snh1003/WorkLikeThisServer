@@ -1,6 +1,7 @@
 const express = require('express');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
+const cors = require('cors');
 
 const app = express();
 
@@ -15,6 +16,7 @@ mongoose.connect(`mongodb://${username}:${password}@feed-db:27017/feeds`, {
 });
 
 // Server
+// app.use(cors());
 app.use(express.json());
 app.use(require('./Controllers'));
 
