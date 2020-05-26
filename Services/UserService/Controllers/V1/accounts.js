@@ -68,6 +68,8 @@ router.post('/signin', async (req, res) => {
               _id: user._id,
               username: user.username,
               userImage: user.userImage,
+              job: user.job,
+              hashtag: user.hashtag,
               token: token
             });
           }
@@ -136,6 +138,8 @@ router.patch('/signup', async (req, res) => {
         _id: result._id,
         username: result.username,
         userImage: result.userImage,
+        job: result.job,
+        hashtag: user.hashtag,
       });
     } else {
       res.status(404).send('Not Found');
