@@ -9,7 +9,7 @@ const nodemailer = require('nodemailer');
 const { promisify } = require("util");
 const ttl = promisify(redisServer.ttl).bind(redisServer);
 
-const jwtSecret = process.env.JWT_PASSWORD;
+const jwtSecret = 'test';
 
 // 이메일 발송 부분
 const smptServer = 'smtp.naver.com';
@@ -106,7 +106,7 @@ router.post('/signup', (req, res) => {
 // 회원가입 시 해쉬태그 추가
 router.patch('/signup', async (req, res) => {
   try {
-    const token = req.headers.authorization.slice(7);
+    const token = req.headers.authorization;
     const body = req.body;
     const user = await redisServer.hgetall(token);
     const result = await userModel.findOneAndUpdate(
@@ -152,7 +152,7 @@ router.patch('/signup', async (req, res) => {
 // 로그아웃
 router.post('/signout', async (req, res) => {
   try {
-    const token = req.headers.authorization.slice(7);
+    const token = req.headers.authorization;
     const delToken = await redisServer.del(token);
 
     if (delToken) {
@@ -169,7 +169,7 @@ router.post('/signout', async (req, res) => {
 // 엔드포인트는 임의로 넣은 거라 변경 가능합니다 :)
 router.delete('/secession', async (req, res) => {
   try {
-    const token = req.headers.authorization.slice(7);
+    const token = req.headers.authorization;
     redisServer.hgetall(token, async (err, user) => {
       if (!err) {
         try {
