@@ -8,7 +8,7 @@ const router = express.Router();
 
 router.post('/put/:id', async (req, res) => {
   try {
-    client.hgetall(req.headers.authorization, async (err, result) => {
+    client.hgetall(req.headers.authorization.slice(7), async (err, result) => {
       const { username } = result;
       const { comment } = req.body;
       const feeds = await Feed.findById(req.params.id);
@@ -30,7 +30,7 @@ router.post('/put/:id', async (req, res) => {
 
 router.post('/del/:id', async (req, res) => {
   try {
-    client.hgetall(req.headers.authorization, async (err, result) => {
+    client.hgetall(req.headers.authorization.slice(7), async (err, result) => {
       const { _id } = req.body;
       const feeds = await Feed.findById(req.params.id);
       if (err) {

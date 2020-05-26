@@ -10,18 +10,23 @@ const router = express.Router();
 // 타임라인 + 페이징처리
 router.get('/timeline', async (req, res) => {
   try {
-    client.hgetall(req.headers.authorization, async (err, result) => {
+    client.hgetall(req.headers.authorization.slice(7), async (err, result) => {
       const { page = 1, limit = 10 } = req.query;
       const skip = (page - 1) * limit;
+      let feeds;
       if (err) {
         res.status(401).send('Unauthorized');
       } else {
-        const feeds = await Feed.find()
-          .where('hashtag')
-          .in([result.hashTag])
-          .sort('-createAt')
-          .skip(skip)
-          .limit(parseInt(limit));
+        if (result.hashtag) {
+          feeds = await Feed.find()
+            .where('hashtag')
+            .in([result.hashTag])
+            .sort('-createAt')
+            .skip(skip)
+            .limit(parseInt(limit));
+        } else {
+          feeds = await Feed.find({});
+        }
         res.status(200).json(feeds);
       }
     });
@@ -33,7 +38,7 @@ router.get('/timeline', async (req, res) => {
 // 글 작성
 router.post('/', async (req, res) => {
   try {
-    client.hgetall(req.headers.authorization, async (err, result) => {
+    client.hgetall(req.headers.authorization.slice(7), async (err, result) => {
       if (err) {
         res.status(401).send('Unauthorized');
       } else {
@@ -62,12 +67,12 @@ router.post('/', async (req, res) => {
 // 글 하나의 정보를 objectId로 조회
 router.get('/:id', async (req, res) => {
   try {
-      const result = await Feed.findById(req.params.id);
-      if (result) {
-        res.status(200).json(result);
-      } else {
-        res.status(404).json({ error: 'NotFound' });
-      }
+    const result = await Feed.findById(req.params.id);
+    if (result) {
+      res.status(200).json(result);
+    } else {
+      res.status(404).json({ error: 'NotFound' });
+    }
   } catch (err) {
     console.error(err);
     res.status(400).json({ error: 'BadRequest' });
@@ -76,7 +81,7 @@ router.get('/:id', async (req, res) => {
 // 글 삭제
 router.delete('/:id', async (req, res) => {
   try {
-    client.hgetall(req.headers.authorization, async (err, result) => {
+    client.hgetall(req.headers.authorization.slice(7), async (err, result) => {
       if (err) {
         res.status(401).send('Unauthorized');
       } else {
