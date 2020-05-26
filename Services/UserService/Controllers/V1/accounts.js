@@ -100,7 +100,7 @@ router.post('/signup', (req, res) => {
       res.status(201).send();
     })
     .catch((err) => {
-      res.status(409).send('Failed');
+      res.status(409).send(err);
     });
 });
 
