@@ -11,21 +11,21 @@ const router = express.Router();
 // 좋은 아이디어 있으면 피드백 주세요 !
 router.post('/', async (req, res) => {
   try {
-    const user = await userModel.findOne({username: req.body.username});
-    redisServer.hgetall(req.headers.authorization.slice(7), async (err, result) => {
+    const user = await userModel.findOne({ username: req.body.username });
+    redisServer.hgetall(req.headers.authorization, async (err, result) => {
       if (!err) {
         try {
           const isFollowing = await followInfomodel.findOne({
             userId: result._id,
             follow: user._id
           });
-  
+
           if (!isFollowing && (result._id !== `${user._id}`)) {
             const following = new followInfomodel({
               userId: result._id,
               follow: user._id
             });
-            
+
             following
               .save()
               .then(() => {
@@ -55,22 +55,22 @@ router.post('/', async (req, res) => {
 // 프론트에서 클라이언트에 팔로우 변화만 잘 일어나면 문제가 없을 것 같아서 일단 수정은 안했습니다.
 router.delete('/', async (req, res) => {
   try {
-    const user = await userModel.findOne({username: req.body.username})
-    redisServer.hgetall(req.headers.authorization.slice(7), (err, result) => {
+    const user = await userModel.findOne({ username: req.body.username })
+    redisServer.hgetall(req.headers.authorization, (err, result) => {
       if (!err) {
         try {
-          followInfomodel.findOneAndRemove({ 
+          followInfomodel.findOneAndRemove({
             userId: result._id,
             follow: user._id
           })
-          .then(() => {
-            res.status(204).end();
-          })
-          .catch(err => {
-            res.status(404).send('Not Found');
-          });
-      
-        } catch(err) {
+            .then(() => {
+              res.status(204).end();
+            })
+            .catch(err => {
+              res.status(404).send('Not Found');
+            });
+
+        } catch (err) {
           res.status(401).send('Unauthorized');
         }
       } else {
