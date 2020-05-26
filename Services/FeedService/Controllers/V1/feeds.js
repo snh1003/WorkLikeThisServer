@@ -33,28 +33,27 @@ router.get('/timeline', async (req, res) => {
 // 글 작성
 router.post('/', async (req, res) => {
   try {
-  //   client.hgetall(req.headers.authorization, async (err, result) => {
-  //     if (err) {
-  //       res.status(401).send('Unauthorized');
-  //     } else {
-    const {
-      username, job, content, image,
-    } = req.body;
-    // const { username, job } = result;
-    const hashtag = await findTag(content);
-    console.log(hashtag);
-    const storage = new Feed({
-      username,
-      content,
-      image,
-      job,
-      like: [],
-      hashtag,
+    client.hgetall(req.headers.authorization, async (err, result) => {
+      if (err) {
+        res.status(401).send('Unauthorized');
+      } else {
+        const {
+          content, image,
+        } = req.body;
+        const { username, job } = result;
+        const hashtag = await findTag(`${content} `);
+        const storage = new Feed({
+          username,
+          content,
+          image,
+          job,
+          like: [],
+          hashtag,
+        });
+        const savedResult = await storage.save();
+        res.status(200).json(savedResult);
+      }
     });
-    const savedResult = await storage.save();
-    res.status(200).json(savedResult);
-    //   }
-    // });
   } catch (err) {
     console.error(err);
     res.status(400).json({ error: 'BadRequest' });
@@ -63,12 +62,12 @@ router.post('/', async (req, res) => {
 // 글 하나의 정보를 objectId로 조회
 router.get('/:id', async (req, res) => {
   try {
-    const result = await Feed.findById(req.params.id);
-    if (result) {
-      res.status(200).json(result);
-    } else {
-      res.status(404).json({ error: 'NotFound' });
-    }
+      const result = await Feed.findById(req.params.id);
+      if (result) {
+        res.status(200).json(result);
+      } else {
+        res.status(404).json({ error: 'NotFound' });
+      }
   } catch (err) {
     console.error(err);
     res.status(400).json({ error: 'BadRequest' });
@@ -77,12 +76,18 @@ router.get('/:id', async (req, res) => {
 // 글 삭제
 router.delete('/:id', async (req, res) => {
   try {
-    const result = await Feed.findByIdAndDelete(req.params.id);
-    if (result) {
-      res.status(200).send();
-    } else {
-      res.status(404).json({ error: 'NotFound' });
-    }
+    client.hgetall(req.headers.authorization, async (err, result) => {
+      if (err) {
+        res.status(401).send('Unauthorized');
+      } else {
+        const result = await Feed.findByIdAndDelete(req.params.id);
+        if (result) {
+          res.status(200).send();
+        } else {
+          res.status(404).json({ error: 'NotFound' });
+        }
+      }
+    });
   } catch (err) {
     console.error(err);
     res.status(400).json({ error: 'BadRequest' });
@@ -100,7 +105,7 @@ router.patch('/:id', async (req, res) => {
         returnOriginal: false,
       },
     );
-    console.log(result);
+    // console.log(result);
     if (result) {
       res.status(200).json(result);
     } else {

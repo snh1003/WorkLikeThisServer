@@ -23,8 +23,12 @@ router.post('/', async (req, res) => {
 
 router.post('/tag', async (req, res) => {
   const { hashtag } = req.body;
-  const hashs = await Hash.find({ hashtag: { $regex: hashtag } }).distinct('hashtag');
-  res.status(200).json({ tag: hashs });
+  const hashs = await Hash.aggregate([
+    { $match: { hashtag: { $regex: hashtag } } },
+    { $group: { _id: '$hashtag', num: { $sum: 1 } } },
+    { $sort: { num: -1 } },
+  ]);
+  res.status(200).json(hashs);
 });
 
 module.exports = router;
