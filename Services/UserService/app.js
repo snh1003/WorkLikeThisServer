@@ -18,7 +18,7 @@ mongoose.connect(`mongodb://${username}:${password}@user-db:27017/users`, {
 });
 
 // Server
-app.use(cors());
+app.use(cors({ origin: true, credentials: true }));
 
 app.use(express.json());
 

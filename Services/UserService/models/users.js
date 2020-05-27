@@ -25,6 +25,8 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
+      required: false,
+      minlength: 8
     },
     userImage: {
       type: String,
@@ -37,7 +39,7 @@ const userSchema = new mongoose.Schema(
     from: {
       type: String,
       require: true,
-      default: 'local' 
+      default: 'local'
     },
     createdAt: {
       type: String,
@@ -56,10 +58,9 @@ const userSchema = new mongoose.Schema(
 // 패스워드 유효성 검사(저장 전)
 userSchema.pre('save', function (next) {
   const user = this;
-  console.log(user.from);
+
   if (user.from === 'local') {
     if (!user.isModified('password')) return next();
-    if (user.password.trim().length < 8) return next();
 
     bcrypt.genSalt(10, function (err, salt) {
       if (err) return next(err);

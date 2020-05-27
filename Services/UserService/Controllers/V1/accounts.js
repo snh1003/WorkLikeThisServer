@@ -3,8 +3,9 @@ const jwt = require('jsonwebtoken');
 const userModel = require('../../models/users.js');
 const followInfoModel = require('../../models/follwerInfo.js');
 require('dotenv').config();
+const bcrypt = require('bcrypt');
 const redis = require('redis');
-const redisServer = redis.createClient(6379, 'redis');
+const redisServer = redis.createClient(process.env.REDIS_PORT, 'redis');
 const nodemailer = require('nodemailer');
 const { promisify } = require("util");
 const ttl = promisify(redisServer.ttl).bind(redisServer);
@@ -12,9 +13,9 @@ const ttl = promisify(redisServer.ttl).bind(redisServer);
 const jwtSecret = 'test';
 
 // 이메일 발송 부분
-const smptServer = 'smtp.naver.com';
-const naverId = 'youngahn11';
-const naverPassword = 'jason1';
+const smptServer = process.env.SMPT_SERVER;
+const emailId = process.env.EMAIL_ID;
+const emailPassword = process.env.EMAIL_PASS;
 
 const router = express.Router();
 
@@ -99,7 +100,7 @@ router.post('/signup', (req, res) => {
       res.status(201).send();
     })
     .catch((err) => {
-      res.status(409).send('Failed');
+      res.status(409).send(err);
     });
 });
 
@@ -191,40 +192,91 @@ router.delete('/secession', async (req, res) => {
   }
 });
 
+// 패스워드 변경 로직 기존 패스워드 확인 후 변경 작업
+router.post('/password', async (req, res) => {
+  const token = req.headers.authorization;
+  try {
+    redisServer.hgetall(token, async (err, user) => {
+      const userInfo = await userModel.findById(user._id);
 
+      userInfo.comparePassword(req.body.password, async (err, isEqual) => {
+        console.log(isEqual);
+        if (isEqual) {
+          const salt = bcrypt.genSaltSync(10);
+          const hash = bcrypt.hashSync(req.body.newPassword, salt);
+          const passUpdate = await userModel.findOneAndUpdate(
+            { _id: user._id },
+            { $set: { password: hash } },
+            {
+              new: true,
+              returnOriginal: false,
+            },
+          );
 
+          if (passUpdate) {
+            res.status(200).send('Success');
+          } else {
+            res.status(202).send('Accept');
+          }
+        } else {
+          res.status(401).send('Unauthorized');
+        }
+      });
+    });
+  } catch {
+    res.status(400).send('Bad Request');
+  }
+});
+
+// 가입 유저의 메일로 임시 비밀번호 발급
 router.post('/forgot', async (req, res) => {
-  const email = req.body.email;
-  const user = await userModel.findOne({ email: email });
-
-  if (user !== null) {
+  try {
+    const email = req.body.email;
     let newPassword = makePassword();
+    let updatePassword;
 
-    const mailOptions = {
-      from: 'youngahn11@naver.com',
-      to: user.email,
-      subject: 'WorkLikeThis에서 임시 비밀번호를 발급해드렸습니다.',
-      text: `임시 비밀번호를 발급해드렸습니다.\n ${newPassword} \n 로그인 후 비밀번호를 교체해주세요.`
-    };
+    const salt = bcrypt.genSaltSync(10);
+    const hash = bcrypt.hashSync(newPassword, salt);
+    updatePassword = hash;
 
-    const smtpTransport = nodemailer.createTransport({
-      host: smptServer,
-      secure: true,
-      auth: {
-        user: naverId,
-        pass: naverPassword,
+    const passUpdate = await userModel.findOneAndUpdate(
+      { email: email },
+      { $set: { password: updatePassword } },
+      {
+        new: true,
+        returnOriginal: false,
       },
-    });
+    );
 
-    smtpTransport.sendMail(mailOptions, function (err, info) {
-      if (err) {
-        return res.status(403).send('Forbidden');
-      }
-      smtpTransport.close();
-      return res.status(200).send('Finished send email');
-    });
-  } else {
-    res.status(404).send('Not Found');
+    if (passUpdate && passUpdate.from === 'local') {
+      const mailOptions = {
+        from: 'worklikethis@naver.com',
+        to: passUpdate.email,
+        subject: 'WorkLikeThis에서 임시 비밀번호를 발급해드렸습니다.',
+        text: `${passUpdate.username}님의 임시 비밀번호입니다.\n로그인 후 비밀번호를 변경해주세요 :)\n\n\n${newPassword}`,
+      };
+
+      const smtpTransport = nodemailer.createTransport({
+        host: smptServer,
+        secure: true,
+        auth: {
+          user: emailId,
+          pass: emailPassword,
+        },
+      });
+
+      smtpTransport.sendMail(mailOptions, function (err, info) {
+        if (err) {
+          return res.status(403).send('Forbidden');
+        }
+        smtpTransport.close();
+        return res.status(200).send('Finished send email');
+      });
+    } else {
+      res.status(404).send('Not Found');
+    }
+  } catch {
+    res.status(400).send('Bad Request');
   }
 });
 

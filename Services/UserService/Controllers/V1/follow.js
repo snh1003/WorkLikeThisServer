@@ -11,8 +11,9 @@ const router = express.Router();
 // 좋은 아이디어 있으면 피드백 주세요 !
 router.post('/', async (req, res) => {
   try {
+    const token = req.headers.authorization;
     const user = await userModel.findOne({ username: req.body.username });
-    redisServer.hgetall(req.headers.authorization, async (err, result) => {
+    redisServer.hgetall(token, async (err, result) => {
       if (!err) {
         try {
           const isFollowing = await followInfomodel.findOne({
@@ -55,8 +56,9 @@ router.post('/', async (req, res) => {
 // 프론트에서 클라이언트에 팔로우 변화만 잘 일어나면 문제가 없을 것 같아서 일단 수정은 안했습니다.
 router.delete('/', async (req, res) => {
   try {
+    const token = req.headers.authorization;
     const user = await userModel.findOne({ username: req.body.username })
-    redisServer.hgetall(req.headers.authorization, (err, result) => {
+    redisServer.hgetall(token, (err, result) => {
       if (!err) {
         try {
           followInfomodel.findOneAndRemove({
