@@ -10,7 +10,7 @@ const nodemailer = require('nodemailer');
 const { promisify } = require("util");
 const ttl = promisify(redisServer.ttl).bind(redisServer);
 
-const jwtSecret = process.env.JWT_PASSWORD;
+const jwtSecret = 'test';
 
 // 이메일 발송 부분
 const smptServer = process.env.SMPT_SERVER;
