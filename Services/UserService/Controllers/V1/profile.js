@@ -23,7 +23,7 @@ const makeSearchArr = (JSONArr, value) => {
 // 자신의 프로필 데이터
 router.get('/', async (req, res) => {
   try {
-    redisServer.hgetall(req.headers.authorization.slice(7), async (err, user) => {
+    redisServer.hgetall(req.headers.authorization, async (err, user) => {
       if (!err) {
         try {
           const userInfo = await userModel.findById(user._id);
@@ -67,7 +67,7 @@ router.get('/', async (req, res) => {
 router.patch('/', async (req, res) => {
   try {
     const body = req.body;
-    const token = req.headers.authorization.slice(7);
+    const token = req.headers.authorization;
     const user = redisServer.hgetall(token);
     const result = await userModel.findOneAndUpdate(
       { id: user._id },
@@ -112,7 +112,7 @@ router.patch('/', async (req, res) => {
 //나를 팔로우하는 유저 정보
 router.get('/follower', async (req, res) => {
   try {
-    redisServer.hgetall(req.headers.authorization.slice(7), async (err, user) => {
+    redisServer.hgetall(req.headers.authorization, async (err, user) => {
       if (!err) {
         try {
           const follower = await followInfoModel.find()
@@ -151,7 +151,7 @@ router.get('/follower', async (req, res) => {
 // 내가 팔로우 하고 있는 유저 정보
 router.get('/following', async (req, res) => {
   try {
-    redisServer.hgetall(req.headers.authorization.slice(7), async (err, user) => {
+    redisServer.hgetall(req.headers.authorization, async (err, user) => {
       if (!err) {
         try {
           const following = await followInfoModel.find()

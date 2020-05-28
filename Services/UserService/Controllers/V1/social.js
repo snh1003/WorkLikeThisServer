@@ -68,7 +68,7 @@ router.post('/signin', (req, res) => {
       const saveUser = await googleUser.save();
       const token = tokenAndRedis(saveUser);
 
-      res.status(205).json({
+      res.status(206).json({
         _id: saveUser._id,
         email: saveUser.email,
         userImage: saveUser.userImage,
