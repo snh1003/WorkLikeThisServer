@@ -58,7 +58,7 @@ router.post('/signin', async (req, res) => {
           redisServer.expire(token, 86400);
 
           if (user.hashtag.length < 1) {
-            res.status(205).json({
+            res.status(206).json({
               _id: user._id,
               username: user.username,
               userImage: user.userImage,
