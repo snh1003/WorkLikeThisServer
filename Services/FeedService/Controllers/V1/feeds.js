@@ -10,7 +10,7 @@ const router = express.Router();
 // 타임라인 + 페이징처리
 router.get('/timeline', async (req, res) => {
   try {
-    client.hgetall(req.headers.authorization.slice(7), async (err, result) => {
+    client.hgetall(req.headers.authorization, async (err, result) => {
       const { page = 1, limit = 10 } = req.query;
       const skip = (page - 1) * limit;
       let feeds;
@@ -38,7 +38,7 @@ router.get('/timeline', async (req, res) => {
 // 글 작성
 router.post('/', async (req, res) => {
   try {
-    client.hgetall(req.headers.authorization.slice(7), async (err, result) => {
+    client.hgetall(req.headers.authorization, async (err, result) => {
       if (err) {
         res.status(401).send('Unauthorized');
       } else {
@@ -81,7 +81,7 @@ router.get('/:id', async (req, res) => {
 // 글 삭제
 router.delete('/:id', async (req, res) => {
   try {
-    client.hgetall(req.headers.authorization.slice(7), async (err, result) => {
+    client.hgetall(req.headers.authorization, async (err, result) => {
       if (err) {
         res.status(401).send('Unauthorized');
       } else {

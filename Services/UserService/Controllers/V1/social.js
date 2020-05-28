@@ -46,9 +46,8 @@ const tokenAndRedis = (user) => {
   return token;
 }
 
-// 구글 로그인 (db에 email 정보 있으면 로그인 없으면 생성 후 205코드 반환)
+// 구글 로그인 (db에 email 정보 있으면 로그인 없으면 생성 후 205코드 반환 및 토큰 생성)
 router.post('/signin', (req, res) => {
-  console.log(req.body.id_token);
   async function verify() {
     const ticket = await client.verifyIdToken({
       idToken: req.body.id_token,
@@ -64,7 +63,6 @@ router.post('/signin', (req, res) => {
         userImage: googleImage,
         from: 'google',
       });
-
       const saveUser = await googleUser.save();
       const token = tokenAndRedis(saveUser);
 
@@ -74,17 +72,27 @@ router.post('/signin', (req, res) => {
         userImage: saveUser.userImage,
         token: token
       });
-    } else {
+    } else if (user.username) {
       const token = tokenAndRedis(user);
+
       res.status(200).json({
         _id: user._id,
         username: user.username,
         userImage: user.userImage,
         token: token
       });
+    } else {
+      const token = tokenAndRedis(user);
+
+      res.status(205).json({
+        _id: user._id,
+        email: user.email,
+        userImage: user.userImage,
+        token: token
+      });
     }
   }
-  verify().then(() => { }).catch(console.error);
+  verify().then(() => { }).catch(err => console.error(err));
 });
 
 module.exports = router;
