@@ -12,7 +12,7 @@ services:
     image: userservice:1.0
     container_name: userservice_V1
     ports: 
-      - 5001:5001
+      - 8080:8080
     volumes:
     - ./Services/UserService:/app
     environment:
@@ -47,6 +47,19 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: root
+  nginx:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: nginxgateway:1.0
+    container_name: nginxgateway
+    ports: 
+      - 8080:8080
+    volumes: 
+      - ./default.conf:/etc/nginx/conf.d/default.conf
+    depends_on: 
+      - user
+      - feed
 volumes:
   user-db:
   feed-db:

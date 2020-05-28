@@ -13,6 +13,7 @@ LABEL maintainer="NGINX Docker Maintainers <docker-maint@nginx.com>"
 # and copy to the build context
 COPY nginx-repo.crt /etc/apk/cert.pem
 COPY nginx-repo.key /etc/apk/cert.key
+COPY api_secret.jwk /etc/nginx/conf/api_secret.jwk
 
 RUN set -x \
 # Create nginx user/group first, to be consistent throughout Docker variants
