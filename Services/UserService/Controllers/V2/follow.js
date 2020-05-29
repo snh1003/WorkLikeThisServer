@@ -1,6 +1,7 @@
+require('dotenv').config();
 const express = require('express');
 const redis = require('redis');
-const redisServer = redis.createClient(6379, 'redis');
+const redisServer = redis.createClient(process.env.REDIS_PORT, 'redis');
 const userModel = require('../../models/users.js');
 const followInfomodel = require('../../models/follwerInfo.js');
 
@@ -11,7 +12,7 @@ const router = express.Router();
 // 좋은 아이디어 있으면 피드백 주세요 !
 router.post('/', async (req, res) => {
   try {
-    const token = req.headers.authorization;
+    const token = req.headers.authorization.slice(7);
     const user = await userModel.findOne({ username: req.body.username });
     redisServer.hgetall(token, async (err, result) => {
       if (!err) {
@@ -32,9 +33,9 @@ router.post('/', async (req, res) => {
               .then(() => {
                 res.status(204).end();
               })
-              .catch(err => {
+              .catch(() => {
                 res.status(409).send('Failed');
-              })
+              });
           } else {
             res.status(403).send('Forbidden');
           }
@@ -56,7 +57,7 @@ router.post('/', async (req, res) => {
 // 프론트에서 클라이언트에 팔로우 변화만 잘 일어나면 문제가 없을 것 같아서 일단 수정은 안했습니다.
 router.delete('/', async (req, res) => {
   try {
-    const token = req.headers.authorization;
+    const token = req.headers.authorization.slice(7);
     const user = await userModel.findOne({ username: req.body.username })
     redisServer.hgetall(token, (err, result) => {
       if (!err) {
@@ -68,18 +69,17 @@ router.delete('/', async (req, res) => {
             .then(() => {
               res.status(204).end();
             })
-            .catch(err => {
+            .catch(() => {
               res.status(404).send('Not Found');
             });
-
-        } catch (err) {
+        } catch {
           res.status(401).send('Unauthorized');
         }
       } else {
         res.status(401).send('Unauthorized');
       }
     });
-  } catch (err) {
+  } catch {
     res.status(400).send('Bad Request');
   }
 });

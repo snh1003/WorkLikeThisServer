@@ -1,6 +1,7 @@
+require('dotenv').config();
 const express = require('express');
 const redis = require('redis');
-const redisServer = redis.createClient(6379, 'redis');
+const redisServer = redis.createClient(process.env.REDIS_PORT, 'redis');
 const userModel = require('../../models/users.js');
 const followInfoModel = require('../../models/follwerInfo.js');
 const { promisify } = require("util");
@@ -14,7 +15,6 @@ const makeSearchArr = (JSONArr, value) => {
   const len = JSONArr.length;
   let arr = [];
   for (let i = 0; i < len; i++) {
-    console.log(JSONArr[i]);
     arr.push(JSONArr[i][value]);
   }
   return arr;
@@ -23,7 +23,7 @@ const makeSearchArr = (JSONArr, value) => {
 // 자신의 프로필 데이터
 router.get('/', async (req, res) => {
   try {
-    const token = req.headers.authorization;
+    const token = req.headers.authorization.slice(7);
     redisServer.hgetall(token, async (err, user) => {
       if (!err) {
         try {
@@ -52,14 +52,14 @@ router.get('/', async (req, res) => {
           } else {
             res.status(404).send('Not Found');
           }
-        } catch (err) {
+        } catch {
           res.status(401).send('Unauthorized');
         }
       } else {
         res.status(401).send('Unauthorized');
       }
     })
-  } catch (err) {
+  } catch {
     res.status(400).send('Bad Request');
   }
 });
@@ -68,7 +68,7 @@ router.get('/', async (req, res) => {
 router.patch('/', async (req, res) => {
   try {
     const body = req.body;
-    const token = req.headers.authorization;
+    const token = req.headers.authorization.slice(7);
     const user = redisServer.hgetall(token);
     const result = await userModel.findOneAndUpdate(
       { id: user._id },
@@ -105,7 +105,7 @@ router.patch('/', async (req, res) => {
     } else {
       res.status(404).send('Not Found');
     }
-  } catch (err) {
+  } catch {
     res.status(400).send('Bad Request');
   }
 });
@@ -113,7 +113,7 @@ router.patch('/', async (req, res) => {
 //나를 팔로우하는 유저 정보
 router.get('/follower', async (req, res) => {
   try {
-    const token = req.headers.authorization;
+    const token = req.headers.authorization.slice(7);
     redisServer.hgetall(token, async (err, user) => {
       if (!err) {
         try {
@@ -138,14 +138,14 @@ router.get('/follower', async (req, res) => {
           } else {
             res.status(404).send('Not Found');
           }
-        } catch (err) {
+        } catch {
           res.status(401).send('Unauthorized');
         }
       } else {
         res.status(401).send('Unauthorized');
       }
-    })
-  } catch (err) {
+    });
+  } catch {
     res.status(400).send('Bad Request');
   }
 });
@@ -153,7 +153,7 @@ router.get('/follower', async (req, res) => {
 // 내가 팔로우 하고 있는 유저 정보
 router.get('/following', async (req, res) => {
   try {
-    const token = req.headers.authorization;
+    const token = req.headers.authorization.slice(7);
     redisServer.hgetall(token, async (err, user) => {
       if (!err) {
         try {
@@ -178,14 +178,14 @@ router.get('/following', async (req, res) => {
           } else {
             res.status(404).send('Not Found');
           }
-        } catch (err) {
+        } catch {
           res.status(401).send('Unauthorized');
         }
       } else {
         res.status(401).send('Unauthorized');
       }
-    })
-  } catch (err) {
+    });
+  } catch {
     res.status(400).send('Bad Request');
   }
 });
@@ -213,11 +213,11 @@ router.get('/:id', async (req, res) => {
         hashtag: user.hashtag,
         follower: follower,
         following: following,
-      })
+      });
     } else {
       res.status(404).send('Not Found');
     }
-  } catch (err) {
+  } catch {
     res.status(400).send('Bad Request');
   }
 });
@@ -246,7 +246,7 @@ router.get('/:id/follower', async (req, res) => {
     } else {
       res.status(404).send('Not Found');
     }
-  } catch (err) {
+  } catch {
     res.status(400).send('Bad Request');
   }
 });
@@ -273,7 +273,7 @@ router.get('/:id/following', async (req, res) => {
         res.status(404).send('Not Found');
       }
     }
-  } catch (err) {
+  } catch {
     res.status(400).send('Bad Request');
   }
 });

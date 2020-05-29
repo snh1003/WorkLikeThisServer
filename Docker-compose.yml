@@ -47,6 +47,19 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: root
+  nginx:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: nginxgateway:1.0
+    container_name: nginxgateway
+    ports: 
+      - 80:80
+    volumes: 
+      - ./default.conf:/etc/nginx/conf.d/default.conf
+    depends_on: 
+      - user
+      - feed
 volumes:
   user-db:
   feed-db:

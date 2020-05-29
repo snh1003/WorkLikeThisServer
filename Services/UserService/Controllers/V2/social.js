@@ -1,9 +1,9 @@
+require('dotenv').config();
 const express = require('express');
 const redis = require('redis');
-const redisServer = redis.createClient(6379, 'redis');
+const redisServer = redis.createClient(process.env.REDIS_PORT, 'redis');
 const jwt = require('jsonwebtoken');
 const userModel = require('../../models/users.js');
-require('dotenv').config();
 const jwtSecret = process.env.JWT_PASSWORD;
 
 const { OAuth2Client } = require('google-auth-library');
@@ -14,9 +14,14 @@ const router = express.Router();
 
 // 토큰 발행 및 레디스 저장 함수
 const tokenAndRedis = (user) => {
-  let token = jwt.sign({ id: user._id }, jwtSecret, {
+  const token = jwt.sign({ id: user._id }, jwtSecret, {
+    noTimestamp: true,
     expiresIn: 86400,
     subject: 'userID',
+    header: {
+      "typ": "JWT",
+      "kid": "0001",
+    },
   });
 
   if (user.username) {
@@ -42,7 +47,6 @@ const tokenAndRedis = (user) => {
     );
     redisServer.expire(token, 86400);
   }
-
   return token;
 }
 
@@ -92,7 +96,9 @@ router.post('/signin', (req, res) => {
       });
     }
   }
-  verify().then(() => { }).catch(err => console.error(err));
+  verify().then(() => { }).catch(() => {
+    res.status(400).send('Bad Request');
+  });
 });
 
 module.exports = router;

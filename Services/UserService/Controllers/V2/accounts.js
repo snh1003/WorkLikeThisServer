@@ -1,8 +1,8 @@
+require('dotenv').config();
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const userModel = require('../../models/users.js');
 const followInfoModel = require('../../models/follwerInfo.js');
-require('dotenv').config();
 const bcrypt = require('bcrypt');
 const redis = require('redis');
 const redisServer = redis.createClient(process.env.REDIS_PORT, 'redis');
@@ -10,7 +10,7 @@ const nodemailer = require('nodemailer');
 const { promisify } = require("util");
 const ttl = promisify(redisServer.ttl).bind(redisServer);
 
-const jwtSecret = 'test';
+const jwtSecret = process.env.JWT_PASSWORD;
 
 // 이메일 발송 부분
 const smptServer = process.env.SMPT_SERVER;
@@ -40,8 +40,13 @@ router.post('/signin', async (req, res) => {
 
         if (isEqual) {
           const token = jwt.sign({ id: user._id }, jwtSecret, {
+            noTimestamp: true,
             expiresIn: 86400,
             subject: 'userID',
+            header: {
+              "typ": "JWT",
+              "kid": "0001",
+            },
           });
 
           redisServer.hmset(
@@ -63,7 +68,7 @@ router.post('/signin', async (req, res) => {
               username: user.username,
               userImage: user.userImage,
               token: token
-            })
+            });
           } else {
             res.status(200).json({
               _id: user._id,
@@ -77,7 +82,7 @@ router.post('/signin', async (req, res) => {
         } else {
           res.status(401).send('Unauthorized');
         }
-      })
+      });
     } else {
       res.status(404).send('Not Found');
     }
@@ -107,7 +112,7 @@ router.post('/signup', (req, res) => {
 // 회원가입 시 해쉬태그 추가
 router.patch('/signup', async (req, res) => {
   try {
-    const token = req.headers.authorization;
+    const token = req.headers.authorization.slice(7);
     const body = req.body;
     const user = await redisServer.hgetall(token);
     const result = await userModel.findOneAndUpdate(
@@ -153,7 +158,7 @@ router.patch('/signup', async (req, res) => {
 // 로그아웃
 router.post('/signout', async (req, res) => {
   try {
-    const token = req.headers.authorization;
+    const token = req.headers.authorization.slice(7);
     const delToken = await redisServer.del(token);
 
     if (delToken) {
@@ -170,7 +175,7 @@ router.post('/signout', async (req, res) => {
 // 엔드포인트는 임의로 넣은 거라 변경 가능합니다 :)
 router.delete('/secession', async (req, res) => {
   try {
-    const token = req.headers.authorization;
+    const token = req.headers.authorization.slice(7);
     redisServer.hgetall(token, async (err, user) => {
       if (!err) {
         try {
@@ -194,7 +199,7 @@ router.delete('/secession', async (req, res) => {
 
 // 패스워드 변경 로직 기존 패스워드 확인 후 변경 작업
 router.post('/password', async (req, res) => {
-  const token = req.headers.authorization;
+  const token = req.headers.authorization.slice(7);
   try {
     redisServer.hgetall(token, async (err, user) => {
       const userInfo = await userModel.findById(user._id);

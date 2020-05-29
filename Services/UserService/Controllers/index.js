@@ -1,14 +1,14 @@
 const express = require('express');
-const accounts = require('./V1/accounts.js');
-const profile = require('./V1/profile.js');
-const follow = require('./V1/follow.js');
-const social = require('./V1/social.js');
+const accounts = require('./V2/accounts.js');
+const profile = require('./V2/profile.js');
+const follow = require('./V2/follow.js');
+const social = require('./V2/social.js');
 
 const router = express.Router();
 
-router.use('/api/v1/accounts', accounts);
-router.use('/api/v1/profile', profile);
-router.use('/api/v1/follow', follow);
-router.use('/api/v1/social', social);
+router.use('/api/v2/accounts', accounts);
+router.use('/api/v2/user/profile', profile);
+router.use('/api/v2/user/follow', follow);
+router.use('/api/v2/social', social);
 
 module.exports = router;
