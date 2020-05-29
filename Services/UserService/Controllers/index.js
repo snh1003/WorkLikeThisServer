@@ -6,9 +6,9 @@ const social = require('./V2/social.js');
 
 const router = express.Router();
 
-router.use('/api/v2/user/accounts', accounts);
+router.use('/api/v2/accounts', accounts);
 router.use('/api/v2/user/profile', profile);
 router.use('/api/v2/user/follow', follow);
-router.use('/api/v2/user/social', social);
+router.use('/api/v2/social', social);
 
 module.exports = router;
